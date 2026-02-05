@@ -1,45 +1,59 @@
 package core.basesyntax.impl;
 
 import core.basesyntax.Storage;
-import java.util.Objects;
 
 public class StorageImpl<K, V> implements Storage<K, V> {
-
     private static final int MAX_LENGTH = 10;
 
-    private final Object[] keys = new Object[MAX_LENGTH];
-    private final Object[] values = new Object[MAX_LENGTH];
-    private int size = 0;
+    private final Object[] keys;
+    private final Object[] values;
+    private int size;
 
-    @Override
-    public void put(K key, V value) {
-        for (int i = 0; i < size; i++) {
-            if (Objects.equals(keys[i], key)) {
-                keys[i] = key;
-                values[i] = value;
-                return;
-            }
-        }
-        if (size < MAX_LENGTH) {
-            keys[size] = key;
-            values[size] = value;
-            size++;
-        }
-
+    public StorageImpl() {
+        keys = new Object[MAX_LENGTH];
+        values = new Object[MAX_LENGTH];
+        size = 0;
     }
 
     @Override
-    public V get(K key) {
-        for (int i = 0; i < size; i++) {
-            if (Objects.equals(keys[i], key)) {
-                return (V) values[i];
-            }
+    public void put(K key, V value) {
+        int index = indexOfKey(key);
+        if (index != -1) {
+            values[index] = value;
+            return;
         }
-        return null;
+
+        if (size == MAX_LENGTH) {
+            return;
+        }
+
+        keys[size] = key;
+        values[size] = value;
+        size++;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public V get(K key) {
+        int index = indexOfKey(key);
+        return index == -1 ? null : (V) values[index];
     }
 
     @Override
     public int size() {
         return size;
+    }
+
+    private int indexOfKey(K key) {
+        for (int i = 0; i < size; i++) {
+            if (areEqual(keys[i], key)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean areEqual(Object a, Object b) {
+        return a == b || (a != null && a.equals(b));
     }
 }
